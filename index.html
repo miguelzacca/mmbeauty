@@ -184,22 +184,71 @@
     <div class="container">
       <span class="label">Trabalhos</span>
       <h2 class="section-title section-title--center">Portfólio</h2>
+      <p class="portfolio__sub">Cada look conta uma história. Conheça alguns dos nossos trabalhos.</p>
     </div>
+
+    <!-- Masonry grid — close-up / beauty shots -->
     <div class="portfolio__grid">
       <div class="portfolio__item portfolio__item--tall">
-        <img src="assets/mm3.webp" alt="Portfólio 1" />
+        <img src="assets/mm23.jpg" alt="Make noiva" />
         <div class="portfolio__shine"></div>
       </div>
       <div class="portfolio__item">
-        <img src="assets/mm2.jpg" alt="Portfólio 2" />
+        <img src="assets/mm12.jpg" alt="Make artístico" />
         <div class="portfolio__shine"></div>
       </div>
       <div class="portfolio__item">
-        <img src="assets/mm3.jpg" alt="Portfólio 3" />
+        <img src="assets/mm24.jpg" alt="Close olhos e cílios" />
         <div class="portfolio__shine"></div>
+      </div>
+      <div class="portfolio__item">
+        <img src="assets/mm21.jpg" alt="Make rosê" />
+        <div class="portfolio__shine"></div>
+      </div>
+      <div class="portfolio__item portfolio__item--tall">
+        <img src="assets/mm3.webp" alt="Portfólio elegante" />
+        <div class="portfolio__shine"></div>
+      </div>
+      <div class="portfolio__item">
+        <img src="assets/mm17.jpg" alt="Make clássico" />
+        <div class="portfolio__shine"></div>
+      </div>
+      <div class="portfolio__item">
+        <img src="assets/mm18.jpg" alt="Make natural" />
+        <div class="portfolio__shine"></div>
+      </div>
+    </div>
+
+    <!-- Horizontal scroll strip — bastidores / lifestyle -->
+    <div class="portfolio__strip-wrap">
+      <p class="portfolio__strip-label">Bastidores</p>
+      <!-- 3D Coverflow Carousel -->
+      <div class="carousel3d" id="carousel3d">
+        <div class="carousel3d__stage">
+          <div class="carousel3d__track" id="c3dTrack">
+            <div class="c3d__slide" data-index="0"><img src="assets/mm11.jpg" alt="Micaela em ação" /></div>
+            <div class="c3d__slide" data-index="1"><img src="assets/mm14.jpg" alt="Cabelo cacheado" /></div>
+            <div class="c3d__slide" data-index="2"><img src="assets/mm16.jpg" alt="Cabelo liso" /></div>
+            <div class="c3d__slide" data-index="3"><img src="assets/mm15.jpg" alt="Unhas" /></div>
+            <div class="c3d__slide" data-index="4"><img src="assets/mm19.jpg" alt="Debutante" /></div>
+            <div class="c3d__slide" data-index="5"><img src="assets/mm20.jpg" alt="Debutante jardim" /></div>
+            <div class="c3d__slide" data-index="6"><img src="assets/mm25.jpg" alt="Terapias" /></div>
+            <div class="c3d__slide" data-index="7"><img src="assets/mm2.jpg" alt="Portfólio" /></div>
+          </div>
+        </div>
+
+        <button class="carousel3d__btn carousel3d__btn--prev" id="c3dPrev" aria-label="Anterior">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button class="carousel3d__btn carousel3d__btn--next" id="c3dNext" aria-label="Próximo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="9 6 15 12 9 18"/></svg>
+        </button>
+
+        <div class="carousel3d__dots" id="c3dDots"></div>
       </div>
     </div>
   </section>
+
 
   <!-- CTA STRIP -->
   <section class="cta-strip">

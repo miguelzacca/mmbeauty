@@ -178,6 +178,9 @@ ScrollTrigger.batch('.servico-card', {
 });
 
 /* ── 11. Portfólio ───────────────────────────────── */
+/* Portfólio sub */
+reveal('.portfolio__sub', { opacity: 0, y: 20, duration: 0.7, ease: 'power2.out' }, '.portfolio .container');
+
 /* Pré-setar estado inicial para evitar flash */
 gsap.set('.portfolio__item', { opacity: 0, y: 28 });
 
@@ -189,6 +192,174 @@ ScrollTrigger.batch('.portfolio__item', {
       duration: 0.95, stagger: 0.14, ease: 'power2.out',
     }),
 });
+
+/* ── 11b. 3D Coverflow Carousel (Bastidores) ─────────
+   Each slide is positioned centrally in the stage.
+   Offset from active index determines 3D transform:
+     rotateY  — cards fan out left/right
+     translateX — spread apart horizontally
+     translateZ  — push bg cards further back
+     scale + opacity — depth perception
+   ─────────────────────────────────────────────────── */
+(function initCarousel3D() {
+  const slides   = Array.from(document.querySelectorAll('.c3d__slide'));
+  const dotsWrap = document.getElementById('c3dDots');
+  const btnPrev  = document.getElementById('c3dPrev');
+  const btnNext  = document.getElementById('c3dNext');
+  if (!slides.length) return;
+
+  let active    = 0;
+  let isAnimating = false;
+  let autoTimer;
+
+  const TOTAL   = slides.length;
+  // 3D config per offset slot
+  const CONFIG  = [
+    // offset: { rotateY, x (px), z (px), scale, opacity }
+    { rotateY:   0, x:    0, z:   0,   scale: 1,    opacity: 1     }, // active
+    { rotateY: -50, x:  310, z: -160,  scale: 0.82, opacity: 0.72  }, // +1 right
+    { rotateY:  50, x: -310, z: -160,  scale: 0.82, opacity: 0.72  }, // -1 left
+    { rotateY: -70, x:  530, z: -320,  scale: 0.65, opacity: 0.4   }, // +2
+    { rotateY:  70, x: -530, z: -320,  scale: 0.65, opacity: 0.4   }, // -2
+  ];
+
+  /* Build dot indicators */
+  slides.forEach((_, i) => {
+    const dot = document.createElement('button');
+    dot.className = 'c3d__dot';
+    dot.setAttribute('aria-label', `Slide ${i + 1}`);
+    dot.addEventListener('click', () => goTo(i));
+    dotsWrap.appendChild(dot);
+  });
+  const dots = Array.from(dotsWrap.querySelectorAll('.c3d__dot'));
+
+  /* Compute 3D transform for a given offset */
+  function getConfig(offset) {
+    const abs = Math.abs(offset);
+    if (abs === 0) return CONFIG[0];
+    const side = offset > 0 ? 1 : -1; // right = 1, left = -1
+    const slot = Math.min(abs, 2);     // clamp to 2 visible neighbours
+    return {
+      rotateY: CONFIG[slot * 2 - (side > 0 ? 1 : 0)].rotateY * (offset > 0 ? -1 : 1),
+      x:       CONFIG[slot * 2 - (side > 0 ? 1 : 0)].x       * (offset > 0 ?  1 : -1),
+      z:       CONFIG[slot * 2 - (side > 0 ? 1 : 0)].z,
+      scale:   CONFIG[slot * 2 - (side > 0 ? 1 : 0)].scale,
+      opacity: CONFIG[slot * 2 - (side > 0 ? 1 : 0)].opacity,
+    };
+  }
+
+  /* Apply GSAP transforms to all slides */
+  function render(instant) {
+    const dur = instant ? 0 : 0.65;
+
+    slides.forEach((slide, i) => {
+      let offset = i - active;
+      // wrap-around for circular feel
+      if (offset >  TOTAL / 2) offset -= TOTAL;
+      if (offset < -TOTAL / 2) offset += TOTAL;
+
+      const absOff = Math.abs(offset);
+      const visible = absOff <= 2;
+
+      /* Simplified config lookup */
+      let ry, tx, tz, sc, op;
+      if (absOff === 0) {
+        ry = 0; tx = 0; tz = 0; sc = 1; op = 1;
+      } else if (absOff === 1) {
+        ry  = offset > 0 ? -50 : 50;
+        tx  = offset > 0 ?  310 : -310;
+        tz  = -160; sc = 0.82; op = 0.72;
+      } else {
+        ry  = offset > 0 ? -70 : 70;
+        tx  = offset > 0 ?  530 : -530;
+        tz  = -320; sc = 0.65; op = 0.4;
+      }
+
+      gsap.to(slide, {
+        rotateY:    ry,
+        x: tx,
+        z: tz,
+        scale:      sc,
+        opacity:    visible ? op : 0,
+        filter:     absOff === 0 ? 'brightness(1)' : 'brightness(0.88)',
+        zIndex:     10 - absOff,
+        duration:   dur,
+        ease:       'power3.out',
+        overwrite:  'auto',
+      });
+
+      slide.classList.toggle('is-active', absOff === 0);
+    });
+
+    /* Update dots */
+    dots.forEach((d, i) => d.classList.toggle('is-active', i === active));
+  }
+
+  /* Navigate */
+  function goTo(index, skipAuto) {
+    if (isAnimating) return;
+    isAnimating = true;
+    active = ((index % TOTAL) + TOTAL) % TOTAL;
+    render(false);
+    setTimeout(() => { isAnimating = false; }, 700);
+    if (!skipAuto) resetAuto();
+  }
+
+  function next() { goTo(active + 1); }
+  function prev() { goTo(active - 1); }
+
+  /* Auto-advance */
+  function resetAuto() {
+    clearInterval(autoTimer);
+    autoTimer = setInterval(next, 3800);
+  }
+
+  /* Click on side cards to navigate */
+  slides.forEach((slide, i) => {
+    slide.addEventListener('click', () => {
+      const offset = i - active;
+      if (offset === 0) return;
+      goTo(i);
+    });
+  });
+
+  btnPrev.addEventListener('click', prev);
+  btnNext.addEventListener('click', next);
+
+  /* Keyboard */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') next();
+    if (e.key === 'ArrowLeft')  prev();
+  });
+
+  /* Touch / swipe */
+  let touchStartX = 0;
+  const stage = document.querySelector('.carousel3d__stage');
+  stage.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  stage.addEventListener('touchend',   e => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) diff > 0 ? next() : prev();
+  });
+
+  /* ScrollTrigger: start carousel when section enters view */
+  ScrollTrigger.create({
+    trigger: '#carousel3d',
+    start: 'top 80%',
+    once: true,
+    onEnter: () => {
+      gsap.from('.carousel3d', {
+        opacity: 0,
+        y: 40,
+        duration: 0.9,
+        ease: 'power3.out',
+        onComplete: () => {
+          render(true);  // set initial positions instantly
+          resetAuto();   // start autoplay
+        }
+      });
+    }
+  });
+})();
 
 /* Parallax nas imagens do portfólio */
 document.querySelectorAll('.portfolio__item img').forEach(img => {
