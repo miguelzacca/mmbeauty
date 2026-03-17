@@ -114,10 +114,10 @@ parallaxTL
 function reveal(targets, vars, triggerEl) {
   gsap.from(targets, {
     ...vars,
-    immediateRender: false,       // ← chave: não aplica estado inicial antes do trigger
+    immediateRender: false,
     scrollTrigger: {
       trigger: triggerEl || (typeof targets === 'string' ? targets : targets[0]),
-      start: 'top 88%',
+      start: 'top 96%',          // dispara cedo, quando o elemento entra na tela
       toggleActions: 'play none none none',
       ...(vars.scrollTrigger || {}),
     },
@@ -148,12 +148,12 @@ document.querySelectorAll('.stat__num').forEach(numEl => {
   const obj = { val: 0 };
   gsap.to(obj, {
     val: raw,
-    duration: 1.8,
+    duration: 1.6,
     ease: 'power2.out',
     immediateRender: false,
     scrollTrigger: {
       trigger: numEl,
-      start: 'top 88%',
+      start: 'top 95%',
       toggleActions: 'play none none none',
     },
     onUpdate() {
@@ -169,7 +169,7 @@ reveal('.servicos__sub', { opacity: 0, y: 24, duration: 0.8, ease: 'power3.out' 
 gsap.set('.servico-card', { opacity: 0, y: 40 });
 
 ScrollTrigger.batch('.servico-card', {
-  start: 'top 92%',
+  start: 'top 98%',
   onEnter: batch =>
     gsap.to(batch, {
       opacity: 1, y: 0,
@@ -185,7 +185,7 @@ reveal('.portfolio__sub', { opacity: 0, y: 20, duration: 0.7, ease: 'power2.out'
 gsap.set('.portfolio__item', { opacity: 0, y: 28 });
 
 ScrollTrigger.batch('.portfolio__item', {
-  start: 'top 88%',
+  start: 'top 96%',
   onEnter: batch =>
     gsap.to(batch, {
       opacity: 1, y: 0,
@@ -211,6 +211,9 @@ ScrollTrigger.batch('.portfolio__item', {
   let active    = 0;
   let isAnimating = false;
   let autoTimer;
+
+  // Hide stage/controls until images load — skeleton shows instead
+  gsap.set('.carousel3d__stage, .carousel3d__btn, .carousel3d__dots', { opacity: 0, y: 15 });
 
   const TOTAL   = slides.length;
   // 3D config per offset slot
@@ -341,6 +344,55 @@ ScrollTrigger.batch('.portfolio__item', {
     if (Math.abs(diff) > 40) diff > 0 ? next() : prev();
   });
 
+  /* ── Skeleton → hide when images ready ───────────── */
+  const skeleton  = document.getElementById('c3dSkeleton');
+  const imgEls    = slides.map(s => s.querySelector('img')).filter(Boolean);
+  let   revealed  = false;
+
+  // Hide skeleton, show carousel, kick off animation
+  function revealCarousel() {
+    if (revealed) return;
+    revealed = true;
+
+    // Fade out skeleton
+    if (skeleton) skeleton.classList.add('is-hidden');
+
+    // Render the carousel immediately (positions all slides)
+    render(true);
+
+    // Already set to opacity:0 via gsap.set — now animate TO visible
+    gsap.to('.carousel3d__stage', {
+      opacity: 1, y: 0, duration: 0.85, ease: 'power3.out',
+    });
+    gsap.to('.carousel3d__btn', {
+      opacity: 1, y: 0, duration: 0.7, delay: 0.15, ease: 'power3.out',
+    });
+    gsap.to('.carousel3d__dots', {
+      opacity: 1, y: 0, duration: 0.6, delay: 0.25, ease: 'power3.out',
+    });
+
+    resetAuto();
+  }
+
+  // Track how many images have loaded
+  let loaded = 0;
+  function onImgLoad() {
+    loaded++;
+    if (loaded >= imgEls.length) revealCarousel();
+  }
+
+  imgEls.forEach(img => {
+    if (img.complete) {
+      onImgLoad();
+    } else {
+      img.addEventListener('load',  onImgLoad, { once: true });
+      img.addEventListener('error', onImgLoad, { once: true }); // also reveal on error
+    }
+  });
+
+  // Safety valve: reveal after 2 s no matter what
+  setTimeout(revealCarousel, 2000);
+
   /* ScrollTrigger: start carousel when section enters view */
   ScrollTrigger.create({
     trigger: '#carousel3d',
@@ -352,10 +404,6 @@ ScrollTrigger.batch('.portfolio__item', {
         y: 40,
         duration: 0.9,
         ease: 'power3.out',
-        onComplete: () => {
-          render(true);  // set initial positions instantly
-          resetAuto();   // start autoplay
-        }
       });
     }
   });

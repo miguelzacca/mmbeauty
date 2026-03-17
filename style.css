@@ -803,6 +803,73 @@ ul {
   border-radius: 4px;
 }
 
+/* ── Skeleton loader para o carrossel 3D ───────────── */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+.c3d__skeleton {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  pointer-events: none;
+  /* fades out when JS adds .is-hidden */
+  transition: opacity 0.7s ease, visibility 0.7s ease;
+}
+
+.c3d__skeleton.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Base shimmer card */
+.c3d__skel-card {
+  position: absolute;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    90deg,
+    var(--rose-100) 25%,
+    var(--petal)    50%,
+    var(--rose-100) 75%
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.6s infinite linear;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+}
+
+/* Center card — full size, front */
+.c3d__skel-card--center {
+  width: 300px;
+  height: 420px;
+  transform: translateX(0) translateZ(0) rotateY(0deg);
+  opacity: 1;
+  animation-delay: 0s;
+}
+
+/* Right side card */
+.c3d__skel-card--right {
+  width: 246px;        /* 300 * 0.82 */
+  height: 345px;       /* 420 * 0.82 */
+  transform: translateX(310px) translateZ(-60px) rotateY(-50deg);
+  opacity: 0.72;
+  animation-delay: 0.2s;
+}
+
+/* Left side card */
+.c3d__skel-card--left {
+  width: 246px;
+  height: 345px;
+  transform: translateX(-310px) translateZ(-60px) rotateY(50deg);
+  opacity: 0.72;
+  animation-delay: 0.4s;
+}
+
+
 /* ==============================
    CTA STRIP
    ============================== */
